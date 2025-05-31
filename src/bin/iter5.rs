@@ -25,6 +25,7 @@ mod state;
 
 use routes::*;
 use state::AppState;
+use crate::errors::EzyTutorError;
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
@@ -42,8 +43,13 @@ async fn main() -> io::Result<()> {
     let app = move || {
         App::new()
             .app_data(shared_data.clone())
+            .app_data(web::JsonConfig::default().error_handler(|_err, _req| {
+                EzyTutorError::InvalidInput(
+                    "Please provide valid json input".to_string()).into()
+            }))
             .configure(general_routes)
             .configure(course_routes)
+            .configure(tutor_routes)
     };
 
     let host_port = env::var("HOST_PORT").expect("HOST_PORT must be set");
